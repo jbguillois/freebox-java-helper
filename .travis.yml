@@ -1,0 +1,14 @@
+language: java
+dist: trusty
+
+before_install:
+
+addons:
+  coverity_scan:
+    project:
+      name: "jbguillois/freebox-java-helper"
+      description: "Build submitted via Travis CI"
+    notification_email: jeanbaptiste.guillois@gmail.com
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn compile"
+    branch_pattern: master
