@@ -3,10 +3,46 @@
 ## Freebox Java Helper
 Freebox Java Helper is a java-based library that helps you interact with your Freebox Server through its public APIs.
 
-## Usage
+## Getting started
+### From within your local network (At your home)
 
-To be completed
+````
+// Get singleton instance
+FreeBoxHelper helper = FreeBoxHelper.getInstance();
 
+// Initialize helper with local-only ip address (mafreebox.freebox.fr) and HTTP port (80)
+helper.init("mafreebox.freebox.fr", "80");
+		
+// Open session
+helper.login();
+
+// Get the call log
+List<CallEntry> callLog = helper.getCallLog();
+callLog.stream().forEach((c) -> System.out.println("Number: "+c.getNumber()+" on "+c.getDatetime()));
+
+// Close session
+helper.logout();
+````
+
+### From an external network (Outside of your home)
+
+````
+// Get singleton instance
+FreeBoxHelper helper = FreeBoxHelper.getInstance();
+
+// Initialize helper with the external IP address of your Freebox and HTTP port (123456)
+helper.init("11.22.33.44.55", "12346");
+		
+// Open session
+helper.login();
+
+// Get the call log
+List<CallEntry> callLog = helper.getCallLog();
+callLog.stream().forEach((c) -> System.out.println("Number: "+c.getNumber()+" on "+c.getDatetime()));
+
+// Close session
+helper.logout();
+````
 
 Copyright & License
 -
