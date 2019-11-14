@@ -12,19 +12,11 @@ Using the Freebox Server APIs requires the creation by the server of an applicat
 // Get singleton instance
 FreeBoxHelper helper = FreeBoxHelper.getInstance();
 
-// Initialize helper with local-only ip address (mafreebox.freebox.fr) and HTTP port (80)
-helper.init("mafreebox.freebox.fr", "80");
-
-// Start authorize process
+// Initialize helper and trigger authorization process for our application
 // You have to do this only once for your application provided it does not change its version/name
 // Once this process is started, you will have less than a minute to grant access 
 // to your application on the Freebox Server LCD panel (select "Oui" with the right arrow)
-Future<String> result = helper.authorize();
-
-// Important !!!
-// Save this token so that you can later use it for any subsequent call
-String appToken = result.get();
-// Important !!!
+String token = helper.initAndAuthorize();
 
 // Now create a new session to be able to call the APIs
 helper.login();

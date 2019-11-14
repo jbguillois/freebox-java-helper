@@ -1,7 +1,11 @@
 package com.github.freebox.api;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -54,39 +58,36 @@ public class FreeBoxHelper {
 	}
 
 	/**
-	 * <p>Initialize this helper to communicate with the given Freebox Server (@host:port). 
-	 * This method must only be used when your application does not any token yet.
+	 * <p>Initialize and authorize your application to call the Freebox Server APIs.
+	 * This method MUST be called from within the network served by your Freebox.
 	 * </p>
-	 * @param fbHost The host on which the Freebox can be contacted. Use "mafreebox.freebox.fr" 
-	 * if you are in your local network, otherwise use the Freebox external IP.
-	 * @param fbPort The port on which the Freebox can be contacted. Use 80 if you are in your
-	 * local network, otherwise use the Freebox external port.
-	 * @param https Use true if the freebox must be accessed through HTTPS, otherwise false
-	 * @return The ServerApiVersionApiResponse object.
+	 * @return The {@Link java.lang.String} application token granted.
 	 */
-	public ServerApiVersionApiResponse init(String fbHost, String fbPort, boolean https) {
-		
-		// Save freebox Host/Port
-		freeboxHost = fbHost;
-		freeboxPort = fbPort;
-		initialized = false;
+	public String initAndAuthorize() {
 		
 		// Init HTTP/S Helper
 		_init();
 		
 		// Query Freebox server API Metadata
-		String url = "";
-		if(https)
-			url = "https://"+freeboxHost+":"+freeboxPort+"/api_version";
-		else
-			url = "http://"+freeboxHost+":"+freeboxPort+"/api_version";
+		// TODO: Force HTTPS even when calling from local network
+		String url = "http://mafreebox.freebox.fr/api_version";
 		
 		HttpResponse<ServerApiVersionApiResponse> response = Unirest.get(url)
 			      .asObject(ServerApiVersionApiResponse.class);
 		
 		serverApiMetadata = (ServerApiVersionApiResponse)response.getBody();
 		
-		return serverApiMetadata;
+		// And start Authorize process
+		try {
+			Future<String> result = authorize();
+			return result.get();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+			return null;
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 	
 	/**
@@ -102,9 +103,35 @@ public class FreeBoxHelper {
 	 * process
 	 * @return The ServerApiVersionApiResponse object.
 	 */
-	public ServerApiVersionApiResponse init(String fbHost, String fbPort, boolean https, String appToken) {
-		init(fbHost, fbPort, https);
+	public ServerApiVersionApiResponse init(String fbHost, String fbPort, String appToken) {
+		
+		// Save the provided token
 		freeboxAppToken = appToken;
+		
+		// Save freebox Host/Port
+		freeboxHost = fbHost;
+		freeboxPort = fbPort;
+		initialized = false;
+		
+		// Init HTTP/S Helper
+		_init();
+		
+		// Query Freebox server API Metadata
+		String url = "";
+		if("mafreebox.freebox.fr".equals(freeboxHost)) {
+			// Allow HTTP as we are in local network
+			url = "http://mafreebox.freebox.fr/api_version";
+		}
+		else {
+			// Force HTTPS as we are connecting remotely (through Internet) to this Freebox
+			url = "https://"+freeboxHost+":"+freeboxPort+"/api_version";
+		}
+		
+		HttpResponse<ServerApiVersionApiResponse> response = Unirest.get(url)
+			      .asObject(ServerApiVersionApiResponse.class);
+		
+		serverApiMetadata = (ServerApiVersionApiResponse)response.getBody();
+		
 		return serverApiMetadata;
 	}
 	
@@ -219,12 +246,15 @@ public class FreeBoxHelper {
 	}
 
 	/**
-	 * Closes the session on the Freebox Server
-	 * @return True if logout is successful
+	 * <p>Closes the session on the Freebox Server
+	 * </p>
 	 */
 	public void logout() {
 		HttpResponse<ServerLogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
-			      .asObject(ServerLogoutApiResponse.class);
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)  
+				.asObject(ServerLogoutApiResponse.class);
+		
+		System.out.println("Logout resp: "+response.getBody().isSuccess());
 	}
 
 	/**
@@ -278,7 +308,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return null;
+		return Collections.EMPTY_LIST;
 	}
 	
 	private void _init() {
