@@ -8,20 +8,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.github.freebox.api.model.AuthorizeStatusResponse;
-import com.github.freebox.api.model.ServerApiVersionApiResponse;
 import com.github.freebox.api.model.AuthorizeApiResponse;
-import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
+import com.github.freebox.api.model.AuthorizeStatusResponse;
 import com.github.freebox.api.model.CreateSessionApiRequest;
 import com.github.freebox.api.model.CreateSessionApiResponse;
 import com.github.freebox.api.model.GetCallEntriesApiResponse;
+import com.github.freebox.api.model.GetLANInterfaceHostsApiResponse;
+import com.github.freebox.api.model.GetLANInterfacesApiResponse;
 import com.github.freebox.api.model.GetSessionsApiResponse;
 import com.github.freebox.api.model.GetSystemInformationApiResponse;
 import com.github.freebox.api.model.GetWifiGlobalConfigurationApiResponse;
 import com.github.freebox.api.model.LoginApiResponse;
 import com.github.freebox.api.model.LogoutApiResponse;
+import com.github.freebox.api.model.ServerApiVersionApiResponse;
+import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
 import com.github.freebox.api.model.data.ApplicationDefinition;
 import com.github.freebox.api.model.data.CallEntry;
+import com.github.freebox.api.model.data.LANHost;
+import com.github.freebox.api.model.data.LANInterface;
 import com.github.freebox.api.model.data.SessionInformation;
 import com.github.freebox.api.model.data.SystemInformation;
 import com.github.freebox.api.model.data.WifiGlobalConfiguration;
@@ -309,6 +313,42 @@ public class FreeBoxHelper {
 		return null;
 	}
 
+	/**
+	 * <p>Returns the list of browsable LAN interfaces
+	 * </p>
+	 * @return The list of browsable LAN interfaces
+	 */
+	public List<LANInterface> getLANInterfaces() {
+		
+		HttpResponse<GetLANInterfacesApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/lan/browser/interfaces/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetLANInterfacesApiResponse.class);
+		
+		if(response.isSuccess()) {
+			return response.getBody().getResult();
+		}
+		
+		return Collections.EMPTY_LIST;
+	}
+	
+	/**
+	 * <p>Returns the list of hosts on a given LAN interface
+	 * </p>
+	 * @return The list of hosts on a given LAN interface
+	 */
+	public List<LANHost> getLANHosts(LANInterface inter) {
+		
+		HttpResponse<GetLANInterfaceHostsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/lan/browser/"+inter.getName())
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetLANInterfaceHostsApiResponse.class);
+		
+		if(response.isSuccess()) {
+			return response.getBody().getResult();
+		}
+		
+		return Collections.EMPTY_LIST;
+	}
+	
 	/**
 	 * <p>Returns the list of API sessions
 	 * </p>
