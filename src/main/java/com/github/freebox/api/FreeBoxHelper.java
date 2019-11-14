@@ -8,21 +8,23 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import com.github.freebox.api.model.ApplicationDefinition;
 import com.github.freebox.api.model.AuthorizeStatusResponse;
-import com.github.freebox.api.model.CallEntry;
 import com.github.freebox.api.model.ServerApiVersionApiResponse;
-import com.github.freebox.api.model.ServerAuthorizeApiResponse;
+import com.github.freebox.api.model.AuthorizeApiResponse;
 import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
-import com.github.freebox.api.model.ServerCreateSessionApiRequest;
-import com.github.freebox.api.model.ServerCreateSessionApiResponse;
-import com.github.freebox.api.model.ServerGetCallEntriesApiResponse;
-import com.github.freebox.api.model.ServerGetSessionsApiResponse;
-import com.github.freebox.api.model.ServerGetSystemInformationApiResponse;
-import com.github.freebox.api.model.ServerLoginApiResponse;
-import com.github.freebox.api.model.ServerLogoutApiResponse;
-import com.github.freebox.api.model.SessionInformation;
-import com.github.freebox.api.model.SystemInformation;
+import com.github.freebox.api.model.CreateSessionApiRequest;
+import com.github.freebox.api.model.CreateSessionApiResponse;
+import com.github.freebox.api.model.GetCallEntriesApiResponse;
+import com.github.freebox.api.model.GetSessionsApiResponse;
+import com.github.freebox.api.model.GetSystemInformationApiResponse;
+import com.github.freebox.api.model.GetWifiGlobalConfigurationApiResponse;
+import com.github.freebox.api.model.LoginApiResponse;
+import com.github.freebox.api.model.LogoutApiResponse;
+import com.github.freebox.api.model.data.ApplicationDefinition;
+import com.github.freebox.api.model.data.CallEntry;
+import com.github.freebox.api.model.data.SessionInformation;
+import com.github.freebox.api.model.data.SystemInformation;
+import com.github.freebox.api.model.data.WifiGlobalConfiguration;
 
 import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
@@ -154,12 +156,12 @@ public class FreeBoxHelper {
 	    	try {
 				
 				// Call the Freebox server
-				HttpResponse<ServerAuthorizeApiResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/authorize")
+				HttpResponse<AuthorizeApiResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/authorize")
 					  .header("Content-Type", "application/json")
 				      .body(appToAuthorize)
-				      .asObject(ServerAuthorizeApiResponse.class);
+				      .asObject(AuthorizeApiResponse.class);
 				
-				ServerAuthorizeApiResponse resp = (ServerAuthorizeApiResponse)response.getBody();
+				AuthorizeApiResponse resp = (AuthorizeApiResponse)response.getBody();
 				if(resp.isSuccess()) {
 					
 					boolean doCheckAuth = true;
@@ -217,21 +219,21 @@ public class FreeBoxHelper {
 	 */
 	public boolean login() {
 		// Get a valid challenge
-		HttpResponse<ServerLoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
-			      .asObject(ServerLoginApiResponse.class);
+		HttpResponse<LoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
+			      .asObject(LoginApiResponse.class);
 
 		// Prepare session creation
-		ServerLoginApiResponse resp = (ServerLoginApiResponse)loginResponse.getBody();
+		LoginApiResponse resp = (LoginApiResponse)loginResponse.getBody();
 		String challenge = resp.getResult().getChallenge();
-		ServerCreateSessionApiRequest createSessionReq = new ServerCreateSessionApiRequest();
+		CreateSessionApiRequest createSessionReq = new CreateSessionApiRequest();
 		createSessionReq.setAppId("org.jbguillois.fbhelper");
 		createSessionReq.setPassword(Utils.computeHMAC_SHA1(freeboxAppToken, challenge));
 		
 		// Call freebox to create session
-		HttpResponse<ServerCreateSessionApiResponse> createSessionResponse = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/session/")
+		HttpResponse<CreateSessionApiResponse> createSessionResponse = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/session/")
 				  .header("Content-Type", "application/json")
 			      .body(createSessionReq)
-			      .asObject(ServerCreateSessionApiResponse.class);
+			      .asObject(CreateSessionApiResponse.class);
 		
 		if(createSessionResponse.isSuccess()) {
 			freeboxSessionToken = createSessionResponse.getBody().getResult().getSessionToken();
@@ -246,9 +248,9 @@ public class FreeBoxHelper {
 	 * </p>
 	 */
 	public void logout() {
-		HttpResponse<ServerLogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
+		HttpResponse<LogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)  
-				.asObject(ServerLogoutApiResponse.class);
+				.asObject(LogoutApiResponse.class);
 		
 		System.out.println("Logout resp: "+response.getBody().isSuccess());
 	}
@@ -260,9 +262,9 @@ public class FreeBoxHelper {
 	 */
 	public List<CallEntry> getCallLog() {
 		
-		HttpResponse<ServerGetCallEntriesApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/call/log/")
+		HttpResponse<GetCallEntriesApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/call/log/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
-			    .asObject(ServerGetCallEntriesApiResponse.class);
+			    .asObject(GetCallEntriesApiResponse.class);
 		
 		if(response.isSuccess()) {
 			return response.getBody().getResult();
@@ -278,9 +280,27 @@ public class FreeBoxHelper {
 	 */
 	public SystemInformation getSystemInformation() {
 		
-		HttpResponse<ServerGetSystemInformationApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/system/")
+		HttpResponse<GetSystemInformationApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/system/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
-			    .asObject(ServerGetSystemInformationApiResponse.class);
+			    .asObject(GetSystemInformationApiResponse.class);
+		
+		if(response.isSuccess()) {
+			return response.getBody().getResult();
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * <p>Returns the Wifi global configuration
+	 * </p>
+	 * @return The Freebox Server Wifi global configuration
+	 */
+	public WifiGlobalConfiguration getWifiConfiguration() {
+		
+		HttpResponse<GetWifiGlobalConfigurationApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/config/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetWifiGlobalConfigurationApiResponse.class);
 		
 		if(response.isSuccess()) {
 			return response.getBody().getResult();
@@ -296,9 +316,9 @@ public class FreeBoxHelper {
 	 */
 	public List<SessionInformation> getSessions() {
 		
-		HttpResponse<ServerGetSessionsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/sessions/")
+		HttpResponse<GetSessionsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/sessions/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
-			    .asObject(ServerGetSessionsApiResponse.class);
+			    .asObject(GetSessionsApiResponse.class);
 		
 		if(response.isSuccess()) {
 			return response.getBody().getResult();

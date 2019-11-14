@@ -1,6 +1,6 @@
 package com.github.freebox.api.model;
 
-public class ServerCreateSessionApiRequest {
+public class CreateSessionApiRequest {
 	private String app_id;
 	private String password;
 	

@@ -1,6 +1,6 @@
 package com.github.freebox.api.model;
 
-public class ServerCreateSessionApiResponse extends ServerApiResponse {
+public class CreateSessionApiResponse extends ServerApiResponse {
 	private CreateSessionResponse result;
 	
 	public CreateSessionResponse getResult() {

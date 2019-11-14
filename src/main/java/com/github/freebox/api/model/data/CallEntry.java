@@ -1,4 +1,4 @@
-package com.github.freebox.api.model;
+package com.github.freebox.api.model.data;
 
 public class CallEntry {
 	
