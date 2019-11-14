@@ -54,6 +54,9 @@ public class FreeBoxHelper {
 	}
 
 	/**
+	 * <p>Initialize this helper to communicate with the given Freebox Server (@host:port). 
+	 * This method must only be used when your application does not any token yet.
+	 * </p>
 	 * @param fbHost The host on which the Freebox can be contacted. Use "mafreebox.freebox.fr" 
 	 * if you are in your local network, otherwise use the Freebox external IP.
 	 * @param fbPort The port on which the Freebox can be contacted. Use 80 if you are in your
@@ -87,6 +90,9 @@ public class FreeBoxHelper {
 	}
 	
 	/**
+	 * <p>Initialize this helper to communicate with the given Freebox Server (@host:port) with the
+	 * given application token.
+	 * </p>
 	 * @param fbHost The host on which the Freebox can be contacted. Use "mafreebox.freebox.fr" 
 	 * if you are in your local network, otherwise use the Freebox external IP.
 	 * @param fbPort The port on which the Freebox can be contacted. Use 80 if you are in your
@@ -103,7 +109,10 @@ public class FreeBoxHelper {
 	}
 	
 	/**
-	 * @return A Future<String> containing the application token if authorize is successful,
+	 * <p>Start the authorize process with the Freebox resulting in an application token
+	 * for your application that will be granted access to Freebox Server APIs.
+	 * </p>
+	 * @return A {@link java.util.concurrent.Future<String>} containing the application token if authorize is successful,
 	 * otherwise the error message
 	 * @throws InterruptedException
 	 */
@@ -177,6 +186,12 @@ public class FreeBoxHelper {
 	    return completableFuture;
 	}
 	
+	/**
+	 * <p>Perform a login (create a session) to the Freebox Server.
+	 * It enables you to later query the Freebox for any other data.
+	 * </p>
+	 * @return A {@link boolean} indicating if the session has been successfully created.
+	 */
 	public boolean login() {
 		// Get a valid challenge
 		HttpResponse<ServerLoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
@@ -207,19 +222,15 @@ public class FreeBoxHelper {
 	 * Closes the session on the Freebox Server
 	 * @return True if logout is successful
 	 */
-	public boolean logout() {
+	public void logout() {
 		HttpResponse<ServerLogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
 			      .asObject(ServerLogoutApiResponse.class);
-		
-		if(response.getBody().isSuccess())
-			return true;
-		
-		return false;
 	}
 
 	/**
-	 * Returns the call log (outbound, inbound or missed)
-	 * @return The call log
+	 * <p>Returns the call log (outbound, inbound or missed)
+	 * </p>
+	 * @return The list ({@link java.util.List}) of last recent calls 
 	 */
 	public List<CallEntry> getCallLog() {
 		
@@ -235,7 +246,8 @@ public class FreeBoxHelper {
 	}
 
 	/**
-	 * Returns technical information about the Freebox server (version, CPU temperature, model...)
+	 * <p>Returns technical information about the Freebox server (version, CPU temperature, model...)
+	 * </p>
 	 * @return The Freebox Server system information
 	 */
 	public SystemInformation getSystemInformation() {
@@ -252,7 +264,8 @@ public class FreeBoxHelper {
 	}
 
 	/**
-	 * Returns the list of API sessions
+	 * <p>Returns the list of API sessions
+	 * </p>
 	 * @return The list of sessions
 	 */
 	public List<SessionInformation> getSessions() {
