@@ -1,7 +1,5 @@
 package com.github.freebox.api;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -10,10 +8,10 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import com.github.freebox.api.model.ApplicationDefinition;
 import com.github.freebox.api.model.AuthorizeStatusResponse;
 import com.github.freebox.api.model.CallEntry;
 import com.github.freebox.api.model.ServerApiVersionApiResponse;
-import com.github.freebox.api.model.ServerAuthorizeApiRequest;
 import com.github.freebox.api.model.ServerAuthorizeApiResponse;
 import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
 import com.github.freebox.api.model.ServerCreateSessionApiRequest;
@@ -30,7 +28,7 @@ import kong.unirest.HttpResponse;
 import kong.unirest.Unirest;
 
 /**
- * @author jguilloi
+ * @author Jean-Baptiste Guillois
  *
  */
 public class FreeBoxHelper {
@@ -63,7 +61,7 @@ public class FreeBoxHelper {
 	 * </p>
 	 * @return The {@Link java.lang.String} application token granted.
 	 */
-	public String initAndAuthorize() {
+	public String initAndAuthorize(ApplicationDefinition appToAuthorize) {
 		
 		// Init HTTP/S Helper
 		_init();
@@ -79,7 +77,7 @@ public class FreeBoxHelper {
 		
 		// And start Authorize process
 		try {
-			Future<String> result = authorize();
+			Future<String> result = authorize(appToAuthorize);
 			return result.get();
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -103,7 +101,7 @@ public class FreeBoxHelper {
 	 * process
 	 * @return The ServerApiVersionApiResponse object.
 	 */
-	public ServerApiVersionApiResponse init(String fbHost, String fbPort, String appToken) {
+	public ServerApiVersionApiResponse init(String fbHost, String fbPort, String appToken) throws Exception {
 		
 		// Save the provided token
 		freeboxAppToken = appToken;
@@ -127,6 +125,9 @@ public class FreeBoxHelper {
 			url = "https://"+freeboxHost+":"+freeboxPort+"/api_version";
 		}
 		
+		if(appToken==null || appToken.isEmpty())
+			throw new Exception("invalid application token provided");
+		
 		HttpResponse<ServerApiVersionApiResponse> response = Unirest.get(url)
 			      .asObject(ServerApiVersionApiResponse.class);
 		
@@ -139,28 +140,23 @@ public class FreeBoxHelper {
 	 * <p>Start the authorize process with the Freebox resulting in an application token
 	 * for your application that will be granted access to Freebox Server APIs.
 	 * </p>
+	 * @param the application to authorize
 	 * @return A {@link java.util.concurrent.Future<String>} containing the application token if authorize is successful,
 	 * otherwise the error message
 	 * @throws InterruptedException
 	 */
-	public Future<String> authorize() throws InterruptedException {
+	public Future<String> authorize(ApplicationDefinition appToAuthorize) throws InterruptedException {
 	    CompletableFuture<String> completableFuture = new CompletableFuture<>();
 	 
 	    // Submit asynchronously the authorize process execution
 	    execService.submit(() -> {
 	    	
 	    	try {
-				// Create authorize request
-				ServerAuthorizeApiRequest authRequest = new ServerAuthorizeApiRequest();
-				authRequest.setAppId("org.jbguillois.fbhelper");
-				authRequest.setAppName("test");
-				authRequest.setAppVersion("1.0");
-				authRequest.setDeviceName("Test");
 				
 				// Call the Freebox server
 				HttpResponse<ServerAuthorizeApiResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/authorize")
 					  .header("Content-Type", "application/json")
-				      .body(authRequest)
+				      .body(appToAuthorize)
 				      .asObject(ServerAuthorizeApiResponse.class);
 				
 				ServerAuthorizeApiResponse resp = (ServerAuthorizeApiResponse)response.getBody();

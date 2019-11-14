@@ -12,11 +12,14 @@ Using the Freebox Server APIs requires the creation by the server of an applicat
 // Get singleton instance
 FreeBoxHelper helper = FreeBoxHelper.getInstance();
 
+// Define our application that will be authorized
+ApplicationDefinition myApp = new ApplicationDefinition("jbguillois.fbhelper", "test", "1.0", "Test");
+
 // Initialize helper and trigger authorization process for our application
 // You have to do this only once for your application provided it does not change its version/name
 // Once this process is started, you will have less than a minute to grant access 
 // to your application on the Freebox Server LCD panel (select "Oui" with the right arrow)
-String token = helper.initAndAuthorize();
+String token = helper.initAndAuthorize(myApp);
 
 // Now create a new session to be able to call the APIs
 helper.login();
