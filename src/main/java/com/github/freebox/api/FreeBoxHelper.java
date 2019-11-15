@@ -178,11 +178,10 @@ public class FreeBoxHelper {
 						      .asObject(ServerAuthorizeStatusApiResponse.class);
 						
 						authStatus = ((ServerAuthorizeStatusApiResponse)statusResponse.getBody()).getResult();
+						
 						if("pending".equals(authStatus.getStatus())) {
 							// continue to wait for user
 							doCheckAuth = true;
-							
-							System.out.println("Waiting...");
 							
 							// Give him some time to interact with the LCD Panel
 							Thread.sleep(1000);
@@ -198,16 +197,19 @@ public class FreeBoxHelper {
 						freeboxAppToken = resp.getResult().getAppToken();
 						completableFuture.complete(freeboxAppToken);
 					}
+					else
+					{
+						completableFuture.completeExceptionally(new Exception(authStatus.getStatus()));
+					}
 				}
 				
 				// Initial auth request is denied/failed
 				else {
-					completableFuture.complete(resp.getMsg());
+					completableFuture.completeExceptionally(new Exception(resp.getMsg()));
 				}
 				return completableFuture;
 				
 			} catch (Exception e) {
-				System.out.println("Authorize process failed: "+ e.getMessage());
 				return completableFuture.completeExceptionally(e);
 			}
 	    });
