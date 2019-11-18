@@ -1,5 +1,8 @@
 package com.github.freebox.api.model.data;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 public class LANHost {
@@ -16,7 +19,7 @@ public class LANHost {
 	private boolean primary_name_manual;
 	private String primary_name;
 	
-	public L2Identification getL2Identities() {
+	public L2Identification getL2Identitification() {
 		return l2ident;
 	}
 	public boolean isActive() {
@@ -25,8 +28,10 @@ public class LANHost {
 	public String getId() {
 		return id;
 	}
-	public int getLastTimeReachable() {
-		return last_time_reachable;
+	public ZonedDateTime getLastTimeReachable() {
+		Instant inst = Instant.ofEpochSecond(last_time_reachable);
+		ZonedDateTime lastTimeReachable = ZonedDateTime.ofInstant(inst, ZoneId.systemDefault());
+		return lastTimeReachable;
 	}
 	public boolean isPersistent() {
 		return persistent;

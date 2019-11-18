@@ -1,5 +1,9 @@
 package com.github.freebox.api.model.data;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 public class CallEntry {
 	
 	private String id;
@@ -17,8 +21,10 @@ public class CallEntry {
 	public String getType() {
 		return type;
 	}
-	public long getDatetime() {
-		return datetime;
+	public ZonedDateTime getDatetime() {
+		Instant inst = Instant.ofEpochSecond(datetime);
+		ZonedDateTime dateTimeZDT = ZonedDateTime.ofInstant(inst, ZoneId.systemDefault());
+		return dateTimeZDT;
 	}
 	public String getNumber() {
 		return number;
@@ -29,10 +35,10 @@ public class CallEntry {
 	public int getDuration() {
 		return duration;
 	}
-	public boolean is_new() {
+	public boolean isNew() {
 		return _new;
 	}
-	public int getContact_id() {
+	public int getContactId() {
 		return contact_id;
 	}
 }

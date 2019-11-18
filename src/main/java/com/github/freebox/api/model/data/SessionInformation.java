@@ -1,5 +1,9 @@
 package com.github.freebox.api.model.data;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+
 public class SessionInformation {
     private boolean is_web_app;
     private String device_name;
@@ -20,8 +24,10 @@ public class SessionInformation {
 	public String getId() {
 		return id;
 	}
-	public long getStartTime() {
-		return start_time;
+	public ZonedDateTime getStartTime() {
+		Instant inst = Instant.ofEpochSecond(start_time);
+		ZonedDateTime startTime = ZonedDateTime.ofInstant(inst, ZoneId.systemDefault());
+		return startTime;
 	}
 	public String getClientIp() {
 		return client_ip;

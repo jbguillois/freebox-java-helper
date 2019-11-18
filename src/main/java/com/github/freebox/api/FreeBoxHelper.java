@@ -24,6 +24,7 @@ import com.github.freebox.api.model.ServerApiVersionApiResponse;
 import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
 import com.github.freebox.api.model.data.ApplicationDefinition;
 import com.github.freebox.api.model.data.CallEntry;
+import com.github.freebox.api.model.data.L2Identification;
 import com.github.freebox.api.model.data.LANHost;
 import com.github.freebox.api.model.data.LANInterface;
 import com.github.freebox.api.model.data.SessionInformation;
@@ -41,7 +42,7 @@ public class FreeBoxHelper {
 	
 	private static FreeBoxHelper helper;
 	private String freeboxHost;
-	private String freeboxPort;
+	private int freeboxPort;
 	private boolean initialized;
 	private String freeboxAppToken;
 	private String freeboxSessionToken;
@@ -49,6 +50,11 @@ public class FreeBoxHelper {
 	private static final String X_FBX_APP_AUTH = "X-Fbx-App-Auth";
 	
 	private ExecutorService execService;
+	
+	static {
+		// Init HTTP/S Helper
+		_init();
+	}
 	
 	
 	/**
@@ -60,6 +66,21 @@ public class FreeBoxHelper {
 		}
 		return helper;
 	}
+	
+	private FreeBoxHelper() {
+		// Create our thread pool
+		execService = Executors.newCachedThreadPool();
+		
+		// Install shutdown hook
+		Runtime.getRuntime().addShutdownHook(new Thread() 
+	    { 
+	      public void run() 
+	      {
+	    	  Unirest.shutDown();
+	    	  execService.shutdown();
+	      }
+	    });
+	}
 
 	/**
 	 * <p>Initialize and authorize your application to call the Freebox Server APIs.
@@ -68,9 +89,6 @@ public class FreeBoxHelper {
 	 * @return The {@Link java.lang.String} application token granted.
 	 */
 	public String initAndAuthorize(ApplicationDefinition appToAuthorize) {
-		
-		// Init HTTP/S Helper
-		_init();
 		
 		// Query Freebox server API Metadata
 		// TODO: Force HTTPS even when calling from local network
@@ -107,7 +125,7 @@ public class FreeBoxHelper {
 	 * process
 	 * @return The ServerApiVersionApiResponse object.
 	 */
-	public ServerApiVersionApiResponse init(String fbHost, String fbPort, String appToken) throws Exception {
+	public ServerApiVersionApiResponse init(String fbHost, int fbPort, String appToken) throws Exception {
 		
 		// Save the provided token
 		freeboxAppToken = appToken;
@@ -116,9 +134,6 @@ public class FreeBoxHelper {
 		freeboxHost = fbHost;
 		freeboxPort = fbPort;
 		initialized = false;
-		
-		// Init HTTP/S Helper
-		_init();
 		
 		// Query Freebox server API Metadata
 		String url = "";
@@ -369,7 +384,22 @@ public class FreeBoxHelper {
 		return Collections.EMPTY_LIST;
 	}
 	
-	private void _init() {
+	public LANHost getLANHostByMacAddr(String macAddr) {
+		List<LANHost> hosts;
+		LANInterface interf = new LANInterface("pub", 0);
+		
+		hosts = getLANHosts(interf);
+		for (LANHost host: hosts) {
+			L2Identification l2ident = host.getL2Identitification();
+			if("mac_address".contentEquals(l2ident.getType()) && l2ident.getId().contentEquals(macAddr)) {
+				return host;
+			}
+		}
+		
+		return null;
+	}
+	
+	private static void _init() {
 		
 		// Initialize Unirest
 		Unirest.config()
@@ -378,18 +408,5 @@ public class FreeBoxHelper {
         .concurrency(10, 5)
         .verifySsl(false)
         .setDefaultHeader("Accept", "application/json");
-		
-		// Create our thread pool
-		execService = Executors.newCachedThreadPool();
-		
-		// Install shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() 
-	    { 
-	      public void run() 
-	      {
-	    	  Unirest.shutDown();
-	    	  execService.shutdown();
-	      }
-	    });
 	}
 }
