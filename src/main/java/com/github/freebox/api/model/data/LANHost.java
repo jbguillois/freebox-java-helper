@@ -48,8 +48,10 @@ public class LANHost {
 	public boolean isReachable() {
 		return reachable;
 	}
-	public int getLastActivity() {
-		return last_activity;
+	public ZonedDateTime getLastActivity() {
+		Instant inst = Instant.ofEpochSecond(last_activity);
+		ZonedDateTime lastActivity = ZonedDateTime.ofInstant(inst, ZoneId.systemDefault());
+		return lastActivity;
 	}
 	public boolean isPrimaryNameManual() {
 		return primary_name_manual;
