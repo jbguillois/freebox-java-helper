@@ -1,7 +1,9 @@
 package com.github.freebox.api;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -17,6 +19,7 @@ import com.github.freebox.api.model.GetLANInterfaceHostsApiResponse;
 import com.github.freebox.api.model.GetLANInterfacesApiResponse;
 import com.github.freebox.api.model.GetSessionsApiResponse;
 import com.github.freebox.api.model.GetSystemInformationApiResponse;
+import com.github.freebox.api.model.GetWifiAccessPointsApiResponse;
 import com.github.freebox.api.model.GetWifiGlobalConfigurationApiResponse;
 import com.github.freebox.api.model.LoginApiResponse;
 import com.github.freebox.api.model.LogoutApiResponse;
@@ -29,6 +32,7 @@ import com.github.freebox.api.model.data.LANHost;
 import com.github.freebox.api.model.data.LANInterface;
 import com.github.freebox.api.model.data.SessionInformation;
 import com.github.freebox.api.model.data.SystemInformation;
+import com.github.freebox.api.model.data.WifiAccessPoint;
 import com.github.freebox.api.model.data.WifiGlobalConfiguration;
 
 import kong.unirest.HttpResponse;
@@ -47,6 +51,8 @@ public class FreeBoxHelper {
 	private String freeboxAppToken;
 	private String freeboxSessionToken;
 	private ServerApiVersionApiResponse serverApiMetadata;
+	private Map<String, LANHost> hostsCache;
+	
 	private static final String X_FBX_APP_AUTH = "X-Fbx-App-Auth";
 	
 	private ExecutorService execService;
@@ -70,6 +76,8 @@ public class FreeBoxHelper {
 	private FreeBoxHelper() {
 		// Create our thread pool
 		execService = Executors.newCachedThreadPool();
+		
+		hostsCache = new HashMap<String, LANHost>();
 		
 		// Install shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() 
@@ -384,12 +392,46 @@ public class FreeBoxHelper {
 		return Collections.EMPTY_LIST;
 	}
 	
+	/**
+	 * <p>Returns the list of Wifi Access Points
+	 * </p>
+	 * @return The list of wifi access points
+	 */
+	public List<WifiAccessPoint> getWifiAccessPoints() {
+		
+		HttpResponse<GetWifiAccessPointsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/ap/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetWifiAccessPointsApiResponse.class);
+		
+		if(response.isSuccess()) {
+			return response.getBody().getResult();
+		}
+		
+		return Collections.EMPTY_LIST;
+	}
+	
+	
+	public void clearLANHostCache() {
+		hostsCache.clear();
+	}
+	
+	public LANHost getCachedLANHostByMacAddr(String macAddr) {
+		
+		if(hostsCache.isEmpty()) {
+			LANInterface interf = new LANInterface("pub", 0);
+			for (LANHost host: getLANHosts(interf)) {
+				L2Identification l2ident = host.getL2Identitification();
+				hostsCache.put(l2ident.getId(), host);
+			}
+		}
+		
+		return hostsCache.get(macAddr);
+	}
+	
 	public LANHost getLANHostByMacAddr(String macAddr) {
-		List<LANHost> hosts;
 		LANInterface interf = new LANInterface("pub", 0);
 		
-		hosts = getLANHosts(interf);
-		for (LANHost host: hosts) {
+		for (LANHost host: getLANHosts(interf)) {
 			L2Identification l2ident = host.getL2Identitification();
 			if("mac_address".contentEquals(l2ident.getType()) && l2ident.getId().contentEquals(macAddr)) {
 				return host;
