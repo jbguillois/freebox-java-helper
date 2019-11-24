@@ -19,6 +19,7 @@ import com.github.freebox.api.model.GetLANInterfaceHostsApiResponse;
 import com.github.freebox.api.model.GetLANInterfacesApiResponse;
 import com.github.freebox.api.model.GetSessionsApiResponse;
 import com.github.freebox.api.model.GetSystemInformationApiResponse;
+import com.github.freebox.api.model.GetWifiAccessPointStationsApiResponse;
 import com.github.freebox.api.model.GetWifiAccessPointsApiResponse;
 import com.github.freebox.api.model.GetWifiGlobalConfigurationApiResponse;
 import com.github.freebox.api.model.LoginApiResponse;
@@ -33,6 +34,7 @@ import com.github.freebox.api.model.data.LANInterface;
 import com.github.freebox.api.model.data.SessionInformation;
 import com.github.freebox.api.model.data.SystemInformation;
 import com.github.freebox.api.model.data.WifiAccessPoint;
+import com.github.freebox.api.model.data.WifiAccessPointStation;
 import com.github.freebox.api.model.data.WifiGlobalConfiguration;
 
 import kong.unirest.HttpResponse;
@@ -410,6 +412,23 @@ public class FreeBoxHelper {
 		return Collections.EMPTY_LIST;
 	}
 	
+	/**
+	 * <p>Returns the list of stations for a given Wifi Access Point
+	 * </p>
+	 * @return The list of stations for a given wifi access point
+	 */
+	public List<WifiAccessPointStation> getWifiAccessPointStations(String apId) {
+		
+		HttpResponse<GetWifiAccessPointStationsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/ap/"+apId+"/stations/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetWifiAccessPointStationsApiResponse.class);
+		
+		if(response.isSuccess()) {
+			return response.getBody().getResult();
+		}
+		
+		return Collections.EMPTY_LIST;
+	}
 	
 	public void clearLANHostCache() {
 		hostsCache.clear();
