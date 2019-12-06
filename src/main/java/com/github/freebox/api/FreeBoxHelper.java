@@ -282,8 +282,6 @@ public class FreeBoxHelper {
 		HttpResponse<LogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)  
 				.asObject(LogoutApiResponse.class);
-		
-		System.out.println("Logout resp: "+response.getBody().isSuccess());
 	}
 
 	/**
@@ -351,7 +349,7 @@ public class FreeBoxHelper {
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetLANInterfacesApiResponse.class);
 		
-		if(response.isSuccess()) {
+		if(response.isSuccess() && (response.getBody().getResult() instanceof List)) {
 			return response.getBody().getResult();
 		}
 		
@@ -369,7 +367,7 @@ public class FreeBoxHelper {
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetLANInterfaceHostsApiResponse.class);
 		
-		if(response.isSuccess()) {
+		if(response.isSuccess() && (response.getBody().getResult() instanceof List)) {
 			return response.getBody().getResult();
 		}
 		
