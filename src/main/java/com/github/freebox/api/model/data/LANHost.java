@@ -7,6 +7,7 @@ import java.util.List;
 
 public class LANHost {
 	private L2Identification l2ident;
+	private String host_type;
 	private boolean active;
 	private String id;
 	private int last_time_reachable;
@@ -19,15 +20,26 @@ public class LANHost {
 	private boolean primary_name_manual;
 	private String primary_name;
 	
+	public String getHostType() {
+		return host_type;
+	}
+	
+	public void setHostType(String host_type) {
+		this.host_type = host_type;
+	}
+	
 	public L2Identification getL2Identitification() {
 		return l2ident;
 	}
+	
 	public boolean isActive() {
 		return active;
 	}
+	
 	public String getId() {
 		return id;
 	}
+	
 	public ZonedDateTime getLastTimeReachable() {
 		Instant inst = Instant.ofEpochSecond(last_time_reachable);
 		ZonedDateTime lastTimeReachable = ZonedDateTime.ofInstant(inst, ZoneId.systemDefault());

@@ -353,7 +353,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 	
 	/**
@@ -371,7 +371,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 	
 	/**
@@ -389,7 +389,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 	
 	/**
@@ -407,7 +407,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 	
 	/**
@@ -425,7 +425,7 @@ public class FreeBoxHelper {
 			return response.getBody().getResult();
 		}
 		
-		return Collections.EMPTY_LIST;
+		return Collections.emptyList();
 	}
 	
 	public void clearLANHostCache() {
