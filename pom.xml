@@ -6,7 +6,7 @@
   <groupId>com.github.freebox</groupId>
   <artifactId>freebox-java-helper</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.4</version>
+  <version>1.1.5</version>
   <name>FreeBox Java Helper</name>
   
   <properties>
@@ -137,6 +137,18 @@
           <target>1.8</target>
         </configuration>
       </plugin>
+	  <plugin>
+		<groupId>org.apache.maven.plugins</groupId>
+		<artifactId>maven-source-plugin</artifactId>
+		<executions>
+			<execution>
+				<id>attach-sources</id>
+				<goals>
+					<goal>jar</goal>
+				</goals>
+			</execution>
+		</executions>
+	  </plugin>
       <plugin>
 	    <artifactId>maven-surefire-plugin</artifactId>
 	    <version>2.19.1</version>
@@ -167,8 +179,6 @@
 			    <artifactId>unirest-java</artifactId>
 			    <version>3.1.02</version>
 			</dependency>
-			
-			
 	    </dependencies>
 	  </plugin>
     </plugins>

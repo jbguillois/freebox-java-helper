@@ -385,9 +385,9 @@ public class FreeBoxHelper {
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetSessionsApiResponse.class);
 		
-		if(response.isSuccess()) {
+		if(response.isSuccess() && response.getBody()!=null) {
 			return response.getBody().getResult();
-		}
+		} 
 		
 		return Collections.emptyList();
 	}
@@ -403,7 +403,7 @@ public class FreeBoxHelper {
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetWifiAccessPointsApiResponse.class);
 		
-		if(response.isSuccess()) {
+		if(response.isSuccess() && response.getBody()!=null) {
 			return response.getBody().getResult();
 		}
 		
@@ -421,7 +421,7 @@ public class FreeBoxHelper {
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetWifiAccessPointStationsApiResponse.class);
 		
-		if(response.isSuccess()) {
+		if(response.isSuccess() && response.getBody()!=null) {
 			return response.getBody().getResult();
 		}
 		
