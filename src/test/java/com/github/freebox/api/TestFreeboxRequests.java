@@ -50,7 +50,7 @@ public class TestFreeboxRequests {
 		
 		createExpectationForFreeBoxHelper_Login1();
 		createExpectationForFreeBoxHelper_Login2();
-		boolean loggedIn = fbh.login();
+		boolean loggedIn = fbh.login("myAppId");
 		assertEquals(true, loggedIn);
     }
     

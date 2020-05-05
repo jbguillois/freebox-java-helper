@@ -243,12 +243,14 @@ public class FreeBoxHelper {
 	}
 	
 	/**
+	 *
 	 * <p>Perform a login (create a session) to the Freebox Server.
 	 * It enables you to later query the Freebox for any other data.
 	 * </p>
+	 * @param appId the applicationId {@link String} to use. It MUST be consistent with the token used.
 	 * @return A {@link boolean} indicating if the session has been successfully created.
 	 */
-	public boolean login() {
+	public boolean login(String appId) {
 		// Get a valid challenge
 		HttpResponse<LoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
 			      .asObject(LoginApiResponse.class);
@@ -257,7 +259,8 @@ public class FreeBoxHelper {
 		LoginApiResponse resp = (LoginApiResponse)loginResponse.getBody();
 		String challenge = resp.getResult().getChallenge();
 		CreateSessionApiRequest createSessionReq = new CreateSessionApiRequest();
-		createSessionReq.setAppId("org.jbguillois.fbhelper");
+		// createSessionReq.setAppId("org.jbguillois.fbhelper");
+		createSessionReq.setAppId(appId);
 		createSessionReq.setPassword(Utils.computeHMAC_SHA1(freeboxAppToken, challenge));
 		
 		// Call freebox to create session
