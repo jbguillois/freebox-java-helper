@@ -22,7 +22,7 @@ ApplicationDefinition myApp = new ApplicationDefinition("jbguillois.fbhelper", "
 String token = helper.initAndAuthorize(myApp);
 
 // Now create a new session to be able to call the APIs
-helper.login();
+helper.login("jbguillois.fbhelper");
 
 // As an example, let's get the call log
 List<CallEntry> callLog = helper.getCallLog();
