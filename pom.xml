@@ -6,7 +6,7 @@
   <groupId>com.github.freebox</groupId>
   <artifactId>freebox-java-helper</artifactId>
   <packaging>jar</packaging>
-  <version>1.1.6</version>
+  <version>1.1.7</version>
   <name>FreeBox Java Helper</name>
   
   <properties>

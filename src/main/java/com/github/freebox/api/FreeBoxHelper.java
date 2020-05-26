@@ -17,6 +17,9 @@ import com.github.freebox.api.model.CreateSessionApiResponse;
 import com.github.freebox.api.model.GetCallEntriesApiResponse;
 import com.github.freebox.api.model.GetLANInterfaceHostsApiResponse;
 import com.github.freebox.api.model.GetLANInterfacesApiResponse;
+import com.github.freebox.api.model.GetParentalFilterConfigurationResponse;
+import com.github.freebox.api.model.GetParentalFilterRuleResponse;
+import com.github.freebox.api.model.GetParentalFilterRulesResponse;
 import com.github.freebox.api.model.GetSessionsApiResponse;
 import com.github.freebox.api.model.GetSystemInformationApiResponse;
 import com.github.freebox.api.model.GetWifiAccessPointStationsApiResponse;
@@ -31,6 +34,8 @@ import com.github.freebox.api.model.data.CallEntry;
 import com.github.freebox.api.model.data.L2Identification;
 import com.github.freebox.api.model.data.LANHost;
 import com.github.freebox.api.model.data.LANInterface;
+import com.github.freebox.api.model.data.ParentalFilterConfiguration;
+import com.github.freebox.api.model.data.ParentalFilterRule;
 import com.github.freebox.api.model.data.SessionInformation;
 import com.github.freebox.api.model.data.SystemInformation;
 import com.github.freebox.api.model.data.WifiAccessPoint;
@@ -459,6 +464,112 @@ public class FreeBoxHelper {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * <p>Returns the parental filter configuration
+	 * </p>
+	 * @return The parental filter configuration
+	 */
+	public ParentalFilterConfiguration getParentalFilterConfiguration() {
+		
+		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetParentalFilterConfigurationResponse.class);
+		
+		if(response.isSuccess() && response.getBody()!=null) {
+			return response.getBody().getResult();
+		}
+		
+		return new ParentalFilterConfiguration();
+	}
+	
+	/**
+	 * <p>Updates the parental filter configuration
+	 * </p>
+	 * @return The new parental filter configuration
+	 */
+	public ParentalFilterConfiguration setParentalFilterConfiguration(String mode) {
+		
+		// Get existing mode
+		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetParentalFilterConfigurationResponse.class);
+		
+		if(response.isSuccess() && response.getBody()!=null) {
+			if("denied".contentEquals(mode) || "webonly".contentEquals(mode) || "allowed".contentEquals(mode)) {
+				// Set new mode
+				ParentalFilterConfiguration newCfg = new ParentalFilterConfiguration();
+				newCfg.setDefaultFilterMode(mode);
+				HttpResponse<GetParentalFilterConfigurationResponse> request = Unirest.put(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+						.header(X_FBX_APP_AUTH, freeboxSessionToken)
+						.header("Content-Type", "application/json")
+						.body(newCfg)
+						.asObject(GetParentalFilterConfigurationResponse.class);
+				
+				if(request.isSuccess() && request.getBody()!=null) {
+					return request.getBody().getResult(); 
+				}
+				return null;
+			}
+			
+			return response.getBody().getResult();
+		}
+		
+		return new ParentalFilterConfiguration();
+	}
+	
+	/**
+	 * <p>Returns all the parental filter rules
+	 * </p>
+	 * @return The collection of parental filter rules
+	 */
+	public List<ParentalFilterRule> getParentalFilterRules() {
+		
+		HttpResponse<GetParentalFilterRulesResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/filter/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetParentalFilterRulesResponse.class);
+		
+		if(response.isSuccess() && response.getBody()!=null) {
+			return response.getBody().getResult();
+		}
+		
+		return Collections.emptyList();
+	}
+	
+	/**
+	 * <p>Adds a parental filter rule
+	 * </p>
+	 * @return The parental filter rule created
+	 */
+	public ParentalFilterRule addParentalFilterRule(ParentalFilterRule newRule) {
+		
+		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/parental/filter/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.header("Content-Type", "application/json")
+				.body(newRule)
+				.asObject(GetParentalFilterRuleResponse.class);
+		
+		if(response.isSuccess() && response.getBody()!=null) {
+			return response.getBody().getResult();
+		}
+		
+		return null;
+	}
+
+	/**
+	 * <p>Adds a parental filter rule
+	 * </p>
+	 * @return The parental filter rule created
+	 */
+	public boolean deleteParentalFilterRule(String ruleId) {
+		
+		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.delete(serverApiMetadata.getApiEndpoint()+"/parental/filter/"+ruleId)
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.header("Content-Type", "application/json")
+				.asObject(GetParentalFilterRuleResponse.class);
+		
+		return response.isSuccess();
 	}
 	
 	private static void _init() {
