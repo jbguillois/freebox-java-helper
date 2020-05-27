@@ -30,7 +30,7 @@ public class TestFreeboxRequests {
     public void test_Init() throws Exception {
     	startServer();
     	
-    	FreeBoxHelper fbh = FreeBoxHelper.getInstance();
+    	FreeBoxHelper fbh = new FreeBoxHelper();
     	
     	createExpectationForFreeBoxHelper_Init();
 		ServerApiVersionApiResponse resp = fbh.init("127.0.0.1", 1080, "???");
@@ -43,7 +43,7 @@ public class TestFreeboxRequests {
     public void test_Login() throws Exception {
     	startServer();
     	
-    	FreeBoxHelper fbh = FreeBoxHelper.getInstance();
+    	FreeBoxHelper fbh = new FreeBoxHelper();
     	
     	createExpectationForFreeBoxHelper_Init();
 		ServerApiVersionApiResponse resp = fbh.init("127.0.0.1", 1080, "APP_TOKEN");

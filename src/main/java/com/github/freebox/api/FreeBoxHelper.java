@@ -51,10 +51,8 @@ import kong.unirest.Unirest;
  */
 public class FreeBoxHelper {
 	
-	private static FreeBoxHelper helper;
 	private String freeboxHost;
 	private int freeboxPort;
-	private boolean initialized;
 	private String freeboxAppToken;
 	private String freeboxSessionToken;
 	private ServerApiVersionApiResponse serverApiMetadata;
@@ -62,29 +60,23 @@ public class FreeBoxHelper {
 	
 	private static final String X_FBX_APP_AUTH = "X-Fbx-App-Auth";
 	
-	private ExecutorService execService;
+	private static ExecutorService execService;
 	
 	static {
+		_FreeBoxHelper();
+	}
+	
+	
+	public FreeBoxHelper() {
+		hostsCache = new HashMap<String, LANHost>();
+	}
+	
+	private static void _FreeBoxHelper() {
 		// Init HTTP/S Helper
 		_init();
-	}
-	
-	
-	/**
-	 * @return The FreeBoxHelper singleton
-	 */
-	public static FreeBoxHelper getInstance() {
-		if(helper == null) {
-			helper = new FreeBoxHelper();
-		}
-		return helper;
-	}
-	
-	private FreeBoxHelper() {
+		
 		// Create our thread pool
 		execService = Executors.newCachedThreadPool();
-		
-		hostsCache = new HashMap<String, LANHost>();
 		
 		// Install shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() 
@@ -148,7 +140,6 @@ public class FreeBoxHelper {
 		// Save freebox Host/Port
 		freeboxHost = fbHost;
 		freeboxPort = fbPort;
-		initialized = false;
 		
 		// Query Freebox server API Metadata
 		String url = "";
