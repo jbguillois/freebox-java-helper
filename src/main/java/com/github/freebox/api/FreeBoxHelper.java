@@ -29,6 +29,7 @@ import com.github.freebox.api.model.LoginApiResponse;
 import com.github.freebox.api.model.LogoutApiResponse;
 import com.github.freebox.api.model.ServerApiVersionApiResponse;
 import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
+import com.github.freebox.api.model.data.ApiInformation;
 import com.github.freebox.api.model.data.ApplicationDefinition;
 import com.github.freebox.api.model.data.CallEntry;
 import com.github.freebox.api.model.data.L2Identification;
@@ -299,6 +300,19 @@ public class FreeBoxHelper {
 		}
 		
 		return null;
+	}
+	
+	/**
+	 * <p>Returns technical information about the Freebox server API
+	 * </p>
+	 * @return The Freebox Server API information 
+	 */
+	public ApiInformation getApiInformation() {
+		
+		HttpResponse<ApiInformation> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/api_version/")
+			    .asObject(ApiInformation.class);
+		
+		return response.getBody();
 	}
 
 	/**
