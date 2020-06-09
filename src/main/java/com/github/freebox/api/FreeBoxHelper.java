@@ -15,6 +15,7 @@ import com.github.freebox.api.model.AuthorizeStatusResponse;
 import com.github.freebox.api.model.CreateSessionApiRequest;
 import com.github.freebox.api.model.CreateSessionApiResponse;
 import com.github.freebox.api.model.GetCallEntriesApiResponse;
+import com.github.freebox.api.model.GetGuestWifiAccessApiResponse;
 import com.github.freebox.api.model.GetLANInterfaceHostsApiResponse;
 import com.github.freebox.api.model.GetLANInterfacesApiResponse;
 import com.github.freebox.api.model.GetParentalFilterConfigurationResponse;
@@ -32,6 +33,7 @@ import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
 import com.github.freebox.api.model.data.ApiInformation;
 import com.github.freebox.api.model.data.ApplicationDefinition;
 import com.github.freebox.api.model.data.CallEntry;
+import com.github.freebox.api.model.data.GuestWifiAccess;
 import com.github.freebox.api.model.data.L2Identification;
 import com.github.freebox.api.model.data.LANHost;
 import com.github.freebox.api.model.data.LANInterface;
@@ -401,6 +403,24 @@ public class FreeBoxHelper {
 		if(response.isSuccess() && response.getBody()!=null) {
 			return response.getBody().getResult();
 		} 
+		
+		return Collections.emptyList();
+	}
+
+	/**
+	 * <p>Returns the list of Guest Wifi access
+	 * </p>
+	 * @return The list of guest wifi access
+	 */
+	public List<GuestWifiAccess> getGuestWifiAccess() {
+		
+		HttpResponse<GetGuestWifiAccessApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/custom_key/")
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+			    .asObject(GetGuestWifiAccessApiResponse.class);
+		
+		if(response.isSuccess() && response.getBody()!=null) {
+			return response.getBody().getResult();
+		}
 		
 		return Collections.emptyList();
 	}
