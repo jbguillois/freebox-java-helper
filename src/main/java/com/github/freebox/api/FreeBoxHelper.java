@@ -31,6 +31,7 @@ import com.github.freebox.api.model.LogoutApiResponse;
 import com.github.freebox.api.model.ServerApiVersionApiResponse;
 import com.github.freebox.api.model.ServerAuthorizeStatusApiResponse;
 import com.github.freebox.api.model.data.ApiInformation;
+import com.github.freebox.api.model.data.AppPermissions;
 import com.github.freebox.api.model.data.ApplicationDefinition;
 import com.github.freebox.api.model.data.CallEntry;
 import com.github.freebox.api.model.data.GuestWifiAccess;
@@ -247,9 +248,9 @@ public class FreeBoxHelper {
 	 * It enables you to later query the Freebox for any other data.
 	 * </p>
 	 * @param appId the applicationId {@link String} to use. It MUST be consistent with the token used.
-	 * @return A {@link boolean} indicating if the session has been successfully created.
+	 * @return A {@link AppPermissions} indicating all permissions granted for this session it login has been successful.
 	 */
-	public boolean login(String appId) {
+	public AppPermissions login(String appId) {
 		// Get a valid challenge
 		HttpResponse<LoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
 			      .asObject(LoginApiResponse.class);
@@ -258,7 +259,6 @@ public class FreeBoxHelper {
 		LoginApiResponse resp = (LoginApiResponse)loginResponse.getBody();
 		String challenge = resp.getResult().getChallenge();
 		CreateSessionApiRequest createSessionReq = new CreateSessionApiRequest();
-		// createSessionReq.setAppId("org.jbguillois.fbhelper");
 		createSessionReq.setAppId(appId);
 		createSessionReq.setPassword(Utils.computeHMAC_SHA1(freeboxAppToken, challenge));
 		
@@ -270,10 +270,10 @@ public class FreeBoxHelper {
 		
 		if(createSessionResponse.isSuccess()) {
 			freeboxSessionToken = createSessionResponse.getBody().getResult().getSessionToken();
-			return true;
+			return createSessionResponse.getBody().getResult().getPermissions();
 		}
 		
-		return false;
+		return null;
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package com.github.freebox.api;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockserver.matchers.Times.exactly;
 import static org.mockserver.model.HttpClassCallback.callback;
@@ -14,7 +15,7 @@ import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.Header;
 
 import com.github.freebox.api.model.ServerApiVersionApiResponse;
-import com.github.freebox.api.model.data.SystemInformation;
+import com.github.freebox.api.model.data.AppPermissions;
 
 public class TestFreeboxRequests {
 	
@@ -47,11 +48,13 @@ public class TestFreeboxRequests {
     	
     	createExpectationForFreeBoxHelper_Init();
 		ServerApiVersionApiResponse resp = fbh.init("127.0.0.1", 1080, "APP_TOKEN");
-		
+
 		createExpectationForFreeBoxHelper_Login1();
 		createExpectationForFreeBoxHelper_Login2();
-		boolean loggedIn = fbh.login("myAppId");
-		assertEquals(true, loggedIn);
+		AppPermissions perms = fbh.login("myAppId");
+		assertNotNull(perms);
+		assertEquals(false, perms.canManageBoxParentalControls());
+		assertEquals(true, perms.canManageBoxVideoRecordings());
     }
     
     private void createExpectationForFreeBoxHelper_Init() {
@@ -83,8 +86,7 @@ public class TestFreeboxRequests {
     
     private void createExpectationForFreeBoxHelper_Login1() {
         new MockServerClient("127.0.0.1", 1080)
-          .when(
-            request()
+        .when(request()
               .withSecure(true)
               .withMethod("GET")
               .withPath("/api/v6/login")
@@ -93,12 +95,12 @@ public class TestFreeboxRequests {
                 .respond(
                   response()
                     .withStatusCode(200)
-                    .withHeaders(
-                      new Header("Content-Type", "application/json; charset=utf-8"))
+                    .withHeaders(new Header("Content-Type", "application/json; charset=utf-8"))
                     .withBody("{success: 'true',"
                     		+ "result: {"
-                    		+ "logged_in: 'true',"
-                    		+ "challenge: 'CHALLENGE'}}")
+                    		+ "challenge: 'CHALLENGE',"
+                    		+ "permissions: {"
+                    		+ "settings: false, contacts: false, calls: false, explorer: false, downloader: false, parental: false, pvr: true}}}")
                 );
     }
     
@@ -114,26 +116,14 @@ public class TestFreeboxRequests {
                 .respond(
                   response()
                     .withStatusCode(200)
-                    .withHeaders(
-                      new Header("Content-Type", "application/json; charset=utf-8"))
+                    .withHeaders(new Header("Content-Type", "application/json; charset=utf-8"))
                     .withBody("{success: 'true',"
                     		+ "result: {"
                     		+ "session_token: 'TOKEN',"
-                    		+ "challenge: 'CHALLENGE'}}")
+                    		+ "challenge: 'CHALLENGE',"
+                    		+ "permissions: {"
+                    		+ "settings: false, contacts: false, calls: false, explorer: false, downloader: false, parental: false, pvr: true}}}")
                 );
-    }
-    
-    private void createExpectationForCallBack_init() {
-        mockServer
-          .when(
-            request()
-            	.withPath("/api_version")
-            	.withMethod("GET")
-            )
-            .callback(
-            	callback()
-            		.withCallbackClass("com.baeldung.mock.server.TestExpectationCallback")
-            );
     }
     
     @AfterClass
