@@ -1,5 +1,7 @@
 package com.github.freebox.api.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 public class ServerApiVersionApiResponse {
 	private String box_model_name;
 	private String api_base_url;
@@ -40,6 +42,11 @@ public class ServerApiVersionApiResponse {
 	}
 	public String getApiVersion() {
 		return api_version;
+	}
+	public int getApiVersionNumber() {
+		if(StringUtils.isAlpha(api_version)) return 0;
+		if(StringUtils.isNumeric(api_version.substring(0, 1))) return Integer.valueOf(api_version.substring(0, 1)).intValue();
+		return 0;
 	}
 	public String getDeviceType() {
 		return device_type;

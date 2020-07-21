@@ -492,11 +492,15 @@ public class FreeBoxHelper {
 	}
 	
 	/**
-	 * <p>Returns the parental filter configuration
+	 * <p>Returns the parental filter configuration.
+	 * Supported only on Freebox with API version up to v6.
 	 * </p>
 	 * @return The parental filter configuration
 	 */
 	public ParentalFilterConfiguration getParentalFilterConfiguration() {
+		
+		// Bail out if api version is > v6
+		if(serverApiMetadata.getApiVersionNumber()>6) return new ParentalFilterConfiguration();
 		
 		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
@@ -515,6 +519,9 @@ public class FreeBoxHelper {
 	 * @return The new parental filter configuration
 	 */
 	public ParentalFilterConfiguration setParentalFilterConfiguration(String mode) {
+		
+		// Bail out if api version is > v6
+		if(serverApiMetadata.getApiVersionNumber()>6) return new ParentalFilterConfiguration();
 		
 		// Get existing mode
 		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
@@ -569,6 +576,9 @@ public class FreeBoxHelper {
 	 */
 	public ParentalFilterRule addParentalFilterRule(ParentalFilterRule newRule) {
 		
+		// Bail out if api version is > v6
+		if(serverApiMetadata.getApiVersionNumber()>6) return null;
+		
 		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/parental/filter/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 				.header("Content-Type", "application/json")
@@ -588,6 +598,9 @@ public class FreeBoxHelper {
 	 * @return The parental filter rule created
 	 */
 	public boolean deleteParentalFilterRule(String ruleId) {
+		
+		// Bail out if api version is > v6
+		if(serverApiMetadata.getApiVersionNumber()>6) return false;
 		
 		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.delete(serverApiMetadata.getApiEndpoint()+"/parental/filter/"+ruleId)
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
