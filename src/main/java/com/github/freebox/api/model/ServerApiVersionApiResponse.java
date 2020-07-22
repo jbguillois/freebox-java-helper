@@ -52,6 +52,23 @@ public class ServerApiVersionApiResponse {
 		return device_type;
 	}
 	
+	public String getApiEndpointWithVersion(String apiV) {
+		StringBuffer buf = new StringBuffer();
+		
+		if(isHttpsAvailable())
+			buf.append("https://");
+		else
+			buf.append("http://");
+		buf.append(getApiDomain());
+		buf.append(":");
+		buf.append(getHttpsPort());
+		buf.append(getApiBaseUrl());
+		buf.append("v");
+		buf.append(apiV);
+		
+		return buf.toString();
+	}
+	
 	public String getApiEndpoint() {
 		StringBuffer buf = new StringBuffer();
 		
@@ -65,7 +82,6 @@ public class ServerApiVersionApiResponse {
 		buf.append(getApiBaseUrl());
 		buf.append("v");
 		buf.append(getApiVersion().substring(0,1));
-		
 		
 		return buf.toString();
 	}

@@ -10,6 +10,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+import org.apache.http.HttpHeaders;
+import org.apache.http.client.HttpClient;
+
 import com.github.freebox.api.model.AuthorizeApiResponse;
 import com.github.freebox.api.model.AuthorizeStatusResponse;
 import com.github.freebox.api.model.CreateSessionApiRequest;
@@ -186,7 +189,7 @@ public class FreeBoxHelper {
 				
 				// Call the Freebox server
 				HttpResponse<AuthorizeApiResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/authorize")
-					  .header("Content-Type", "application/json")
+					  .header(HttpHeaders.CONTENT_TYPE, "application/json")
 				      .body(appToAuthorize)
 				      .asObject(AuthorizeApiResponse.class);
 				
@@ -199,7 +202,7 @@ public class FreeBoxHelper {
 					// Poll server until user accepts application on FB LCD Panel
 					while(doCheckAuth) {
 						HttpResponse<ServerAuthorizeStatusApiResponse> statusResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/authorize/"+resp.getResult().getTtrackId())
-							  .header("Content-Type", "application/json")
+							  .header(HttpHeaders.CONTENT_TYPE, "application/json")
 						      .asObject(ServerAuthorizeStatusApiResponse.class);
 						
 						authStatus = ((ServerAuthorizeStatusApiResponse)statusResponse.getBody()).getResult();
@@ -264,7 +267,7 @@ public class FreeBoxHelper {
 		
 		// Call freebox to create session
 		HttpResponse<CreateSessionApiResponse> createSessionResponse = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/session/")
-				  .header("Content-Type", "application/json")
+				  .header(HttpHeaders.CONTENT_TYPE, "application/json")
 			      .body(createSessionReq)
 			      .asObject(CreateSessionApiResponse.class);
 		
@@ -493,16 +496,13 @@ public class FreeBoxHelper {
 	
 	/**
 	 * <p>Returns the parental filter configuration.
-	 * Supported only on Freebox with API version up to v6.
+	 * The API v6 is used even if available API version is higher.
 	 * </p>
 	 * @return The parental filter configuration
 	 */
 	public ParentalFilterConfiguration getParentalFilterConfiguration() {
 		
-		// Bail out if api version is > v6
-		if(serverApiMetadata.getApiVersionNumber()>6) return new ParentalFilterConfiguration();
-		
-		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetParentalFilterConfigurationResponse.class);
 		
@@ -514,17 +514,15 @@ public class FreeBoxHelper {
 	}
 	
 	/**
-	 * <p>Updates the parental filter configuration
+	 * <p>Updates the parental filter configuration.
+	 * The API v6 is used even if available API version is higher.
 	 * </p>
 	 * @return The new parental filter configuration
 	 */
 	public ParentalFilterConfiguration setParentalFilterConfiguration(String mode) {
 		
-		// Bail out if api version is > v6
-		if(serverApiMetadata.getApiVersionNumber()>6) return new ParentalFilterConfiguration();
-		
 		// Get existing mode
-		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetParentalFilterConfigurationResponse.class);
 		
@@ -533,9 +531,9 @@ public class FreeBoxHelper {
 				// Set new mode
 				ParentalFilterConfiguration newCfg = new ParentalFilterConfiguration();
 				newCfg.setDefaultFilterMode(mode);
-				HttpResponse<GetParentalFilterConfigurationResponse> request = Unirest.put(serverApiMetadata.getApiEndpoint()+"/parental/config/")
+				HttpResponse<GetParentalFilterConfigurationResponse> request = Unirest.put(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 						.header(X_FBX_APP_AUTH, freeboxSessionToken)
-						.header("Content-Type", "application/json")
+						.header(HttpHeaders.CONTENT_TYPE, "application/json")
 						.body(newCfg)
 						.asObject(GetParentalFilterConfigurationResponse.class);
 				
@@ -552,13 +550,14 @@ public class FreeBoxHelper {
 	}
 	
 	/**
-	 * <p>Returns all the parental filter rules
+	 * <p>Returns all the parental filter rules.
+	 * The API v6 is used even if available API version is higher.
 	 * </p>
 	 * @return The collection of parental filter rules
 	 */
 	public List<ParentalFilterRule> getParentalFilterRules() {
 		
-		HttpResponse<GetParentalFilterRulesResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/parental/filter/")
+		HttpResponse<GetParentalFilterRulesResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 			    .asObject(GetParentalFilterRulesResponse.class);
 		
@@ -570,18 +569,16 @@ public class FreeBoxHelper {
 	}
 	
 	/**
-	 * <p>Adds a parental filter rule
+	 * <p>Adds a parental filter rule.
+	 * The API v6 is used even if available API version is higher.
 	 * </p>
 	 * @return The parental filter rule created
 	 */
 	public ParentalFilterRule addParentalFilterRule(ParentalFilterRule newRule) {
 		
-		// Bail out if api version is > v6
-		if(serverApiMetadata.getApiVersionNumber()>6) return null;
-		
-		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.post(serverApiMetadata.getApiEndpoint()+"/parental/filter/")
+		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.post(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
-				.header("Content-Type", "application/json")
+				.header(HttpHeaders.CONTENT_TYPE, "application/json")
 				.body(newRule)
 				.asObject(GetParentalFilterRuleResponse.class);
 		
@@ -593,18 +590,16 @@ public class FreeBoxHelper {
 	}
 
 	/**
-	 * <p>Adds a parental filter rule
+	 * <p>Adds a parental filter rule.
+	 * The API v6 is used even if available API version is higher.
 	 * </p>
 	 * @return The parental filter rule created
 	 */
 	public boolean deleteParentalFilterRule(String ruleId) {
 		
-		// Bail out if api version is > v6
-		if(serverApiMetadata.getApiVersionNumber()>6) return false;
-		
-		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.delete(serverApiMetadata.getApiEndpoint()+"/parental/filter/"+ruleId)
+		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.delete(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/"+ruleId)
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
-				.header("Content-Type", "application/json")
+				.header(HttpHeaders.CONTENT_TYPE, "application/json")
 				.asObject(GetParentalFilterRuleResponse.class);
 		
 		return response.isSuccess();
@@ -618,6 +613,6 @@ public class FreeBoxHelper {
         .connectTimeout(5000)
         .concurrency(10, 5)
         .verifySsl(false)
-        .setDefaultHeader("Accept", "application/json");
+        .setDefaultHeader(HttpHeaders.ACCEPT, "application/json");
 	}
 }
