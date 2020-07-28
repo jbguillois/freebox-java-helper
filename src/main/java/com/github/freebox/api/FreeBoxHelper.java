@@ -1,9 +1,7 @@
 package com.github.freebox.api;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -11,7 +9,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import org.apache.http.HttpHeaders;
-import org.apache.http.client.HttpClient;
 
 import com.github.freebox.api.model.AuthorizeApiResponse;
 import com.github.freebox.api.model.AuthorizeStatusResponse;
@@ -63,7 +60,7 @@ public class FreeBoxHelper {
 	private String freeboxAppToken;
 	private String freeboxSessionToken;
 	private ServerApiVersionApiResponse serverApiMetadata;
-	private Map<String, LANHost> hostsCache;
+	private int connectionTimeOut;
 	
 	private static final String X_FBX_APP_AUTH = "X-Fbx-App-Auth";
 	
@@ -75,9 +72,13 @@ public class FreeBoxHelper {
 	
 	
 	public FreeBoxHelper() {
-		hostsCache = new HashMap<String, LANHost>();
+		connectionTimeOut = 5000;
 	}
-	
+
+	public FreeBoxHelper(int timeout) {
+		connectionTimeOut = timeout;
+	}
+
 	private static void _FreeBoxHelper() {
 		// Init HTTP/S Helper
 		_init();
@@ -163,7 +164,8 @@ public class FreeBoxHelper {
 			throw new Exception("invalid application token provided");
 		
 		HttpResponse<ServerApiVersionApiResponse> response = Unirest.get(url)
-			      .asObject(ServerApiVersionApiResponse.class);
+				.connectTimeout(connectionTimeOut)
+				.asObject(ServerApiVersionApiResponse.class);
 		
 		serverApiMetadata = (ServerApiVersionApiResponse)response.getBody();
 		
@@ -256,7 +258,8 @@ public class FreeBoxHelper {
 	public AppPermissions login(String appId) {
 		// Get a valid challenge
 		HttpResponse<LoginApiResponse> loginResponse = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login")
-			      .asObject(LoginApiResponse.class);
+				.connectTimeout(connectionTimeOut)
+				.asObject(LoginApiResponse.class);
 
 		// Prepare session creation
 		LoginApiResponse resp = (LoginApiResponse)loginResponse.getBody();
@@ -268,6 +271,7 @@ public class FreeBoxHelper {
 		// Call freebox to create session
 		HttpResponse<CreateSessionApiResponse> createSessionResponse = Unirest.post(serverApiMetadata.getApiEndpoint()+"/login/session/")
 				  .header(HttpHeaders.CONTENT_TYPE, "application/json")
+				  .connectTimeout(connectionTimeOut)
 			      .body(createSessionReq)
 			      .asObject(CreateSessionApiResponse.class);
 		
@@ -285,7 +289,8 @@ public class FreeBoxHelper {
 	 */
 	public void logout() {
 		HttpResponse<LogoutApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/login/logout/")
-				.header(X_FBX_APP_AUTH, freeboxSessionToken)  
+				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 				.asObject(LogoutApiResponse.class);
 	}
 
@@ -298,6 +303,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetCallEntriesApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/call/log/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetCallEntriesApiResponse.class);
 		
 		if(response.isSuccess()) {
@@ -315,7 +321,8 @@ public class FreeBoxHelper {
 	public ApiInformation getApiInformation() {
 		
 		HttpResponse<ApiInformation> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/api_version/")
-			    .asObject(ApiInformation.class);
+				.connectTimeout(connectionTimeOut)
+				.asObject(ApiInformation.class);
 		
 		return response.getBody();
 	}
@@ -329,6 +336,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetSystemInformationApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/system/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetSystemInformationApiResponse.class);
 		
 		if(response.isSuccess()) {
@@ -347,6 +355,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetWifiGlobalConfigurationApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetWifiGlobalConfigurationApiResponse.class);
 		
 		if(response.isSuccess()) {
@@ -365,6 +374,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetLANInterfacesApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/lan/browser/interfaces/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetLANInterfacesApiResponse.class);
 		
 		if(response.isSuccess() && (response.getBody().getResult() instanceof List)) {
@@ -383,6 +393,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetLANInterfaceHostsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/lan/browser/"+inter.getName())
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetLANInterfaceHostsApiResponse.class);
 		
 		if(response.isSuccess() && (response.getBody().getResult() instanceof List)) {
@@ -401,6 +412,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetSessionsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/sessions/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetSessionsApiResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -419,6 +431,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetGuestWifiAccessApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/custom_key/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetGuestWifiAccessApiResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -437,6 +450,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetWifiAccessPointsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/ap/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetWifiAccessPointsApiResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -455,6 +469,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetWifiAccessPointStationsApiResponse> response = Unirest.get(serverApiMetadata.getApiEndpoint()+"/wifi/ap/"+apId+"/stations/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetWifiAccessPointStationsApiResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -462,23 +477,6 @@ public class FreeBoxHelper {
 		}
 		
 		return Collections.emptyList();
-	}
-	
-	public void clearLANHostCache() {
-		hostsCache.clear();
-	}
-	
-	public LANHost getCachedLANHostByMacAddr(String macAddr) {
-		
-		if(hostsCache.isEmpty()) {
-			LANInterface interf = new LANInterface("pub", 0);
-			for (LANHost host: getLANHosts(interf)) {
-				L2Identification l2ident = host.getL2Identitification();
-				hostsCache.put(l2ident.getId(), host);
-			}
-		}
-		
-		return hostsCache.get(macAddr);
 	}
 	
 	public LANHost getLANHostByMacAddr(String macAddr) {
@@ -504,6 +502,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetParentalFilterConfigurationResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -524,6 +523,7 @@ public class FreeBoxHelper {
 		// Get existing mode
 		HttpResponse<GetParentalFilterConfigurationResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetParentalFilterConfigurationResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -534,6 +534,7 @@ public class FreeBoxHelper {
 				HttpResponse<GetParentalFilterConfigurationResponse> request = Unirest.put(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/config/")
 						.header(X_FBX_APP_AUTH, freeboxSessionToken)
 						.header(HttpHeaders.CONTENT_TYPE, "application/json")
+						.connectTimeout(connectionTimeOut)
 						.body(newCfg)
 						.asObject(GetParentalFilterConfigurationResponse.class);
 				
@@ -559,6 +560,7 @@ public class FreeBoxHelper {
 		
 		HttpResponse<GetParentalFilterRulesResponse> response = Unirest.get(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
+				.connectTimeout(connectionTimeOut)
 			    .asObject(GetParentalFilterRulesResponse.class);
 		
 		if(response.isSuccess() && response.getBody()!=null) {
@@ -579,6 +581,7 @@ public class FreeBoxHelper {
 		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.post(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/")
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 				.header(HttpHeaders.CONTENT_TYPE, "application/json")
+				.connectTimeout(connectionTimeOut)
 				.body(newRule)
 				.asObject(GetParentalFilterRuleResponse.class);
 		
@@ -600,6 +603,7 @@ public class FreeBoxHelper {
 		HttpResponse<GetParentalFilterRuleResponse> response = Unirest.delete(serverApiMetadata.getApiEndpointWithVersion("6")+"/parental/filter/"+ruleId)
 				.header(X_FBX_APP_AUTH, freeboxSessionToken)
 				.header(HttpHeaders.CONTENT_TYPE, "application/json")
+				.connectTimeout(connectionTimeOut)
 				.asObject(GetParentalFilterRuleResponse.class);
 		
 		return response.isSuccess();
