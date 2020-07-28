@@ -613,8 +613,8 @@ public class FreeBoxHelper {
 		
 		// Initialize Unirest
 		Unirest.config()
-        .socketTimeout(5000)
-        .connectTimeout(5000)
+        .socketTimeout(10000)
+//        .connectTimeout(5000)
         .concurrency(10, 5)
         .verifySsl(false)
         .setDefaultHeader(HttpHeaders.ACCEPT, "application/json");
